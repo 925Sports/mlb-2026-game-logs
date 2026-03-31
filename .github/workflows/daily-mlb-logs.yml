@@ -2,8 +2,11 @@ name: Daily MLB 2026 Game Logs - 925Sports
 
 on:
   schedule:
-    - cron: '0 12 * * *'     # Runs every day at 7:00 AM CDT
-  workflow_dispatch:         # Allows you to run it manually
+    - cron: '0 12 * * *'     # 7:00 AM CDT
+  workflow_dispatch:
+
+permissions:
+  contents: write     # This is the key fix - allows the bot to push
 
 jobs:
   update-logs:
@@ -12,6 +15,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}   # Use the built-in token
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -23,7 +28,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run MLB Game Logs Script
+      - name: Run MLB 2026 Game Logs Script
         run: python mlb_2026_game_logs.py
 
       - name: Commit and push new CSV
@@ -32,12 +37,12 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add *.csv
           if git diff --staged --quiet; then
-            echo "No new data to commit"
+            echo "✅ No new data to commit today"
           else
             git commit -m "Daily update: MLB 2026 game logs - $(date '+%Y-%m-%d')"
             git push
-            echo "CSV committed and pushed"
+            echo "✅ Successfully committed and pushed new CSV"
           fi
 
-      - name: List files
-        run: ls -la *.csv || echo "No CSV found"
+      - name: List generated files
+        run: ls -la *.csv || echo "No CSV files generated"
