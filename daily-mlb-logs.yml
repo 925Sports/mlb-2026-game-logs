@@ -1,9 +1,9 @@
-name: Daily MLB 2026 Game Logs
+name: Daily MLB 2026 Game Logs - 925Sports
 
 on:
   schedule:
-    - cron: '0 8 * * *'   # Runs every day at 8:00 AM UTC (3:00 AM CDT)
-  workflow_dispatch:      # Allows you to run it manually anytime
+    - cron: '0 12 * * *'     # Runs every day at 12:00 PM UTC = 7:00 AM CDT
+  workflow_dispatch:         # Allows easy manual trigger
 
 jobs:
   update-logs:
@@ -12,24 +12,31 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      - name: Set up Python
+
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      
-      - name: Run MLB game logs script
+
+      - name: Run MLB 2026 Game Logs Script
         run: python mlb_2026_game_logs.py
-      
-      - name: Commit and push new CSV
+
+      - name: Commit and push new CSV file
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add *.csv
-          git commit -m "Daily update: MLB 2026 game logs - $(date)" || echo "No changes to commit"
-          git push
+          if git diff --staged --quiet; then
+            echo "No new data to commit"
+          else
+            git commit -m "Daily update: MLB 2026 game logs - $(date '+%Y-%m-%d %H:%M:%S')"
+            git push
+          fi
+
+      - name: Show created files
+        run: ls -la *.csv || echo "No CSV files found"
